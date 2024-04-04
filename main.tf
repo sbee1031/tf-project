@@ -5,6 +5,12 @@ terraform {
       version = "~> 4.48.0"
     }
   }
+
+  backend "s3" {
+    bucket = "tf-backend-lsb"
+    key    = "terraform.tfstate"
+    region = "ap-northeast-2"
+  }
 }
 
 provider "aws" {
@@ -55,15 +61,17 @@ module "vpc_list" {
 
 # 버켓명은 모든 계정에서 고유해야 함
 resource "aws_s3_bucket" "tf_backend_lsb" {
-  bucket = "tf_backend_lsb001"
-
-  # history 를 기록
-  versioning {
-    enabled = true
-  }
+  bucket = "tf-backend-lsb"
 
   tags = {
-    Name = "tf_backend_lsb"
+    Name = "tf-backend-lsb"
+  }
+}
+
+resource "aws_s3_bucket_versioning" "tf_backend_lsb_versioning" {
+  bucket = aws_s3_bucket.tf_backend_lsb.id
+  versioning_configuration {
+    status = "Enabled"
   }
 }
 
@@ -71,3 +79,22 @@ resource "aws_s3_bucket_acl" "tf_backend_lsb_acl" {
   bucket = aws_s3_bucket.tf_backend_lsb.id
   acl    = "private"
 }
+
+# # 	3.37.95.244
+# resource "aws_eip" "eip_temp" {
+#   tags = {
+#     Name = "temp"
+#   }
+# }
+
+# # provisioner 사용해보기
+# resource "aws_eip" "eip_temp" {
+#   provisioner "local-exec" {
+#     command = "echo ${self.public_ip}"
+#   }
+
+#   tags = {
+#     Name = "temp"
+#   }
+
+# }

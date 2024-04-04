@@ -22,12 +22,12 @@ resource "aws_subnet" "public_subnet_1" {
 #   subnet_id         = aws_subnet.public_subnet_1[0].id
 # }
 
-resource "aws_nat_gateway" "public_nat" {
-  count             = var.env == "prd" ? 0 : 1
-  connectivity_type = "public"
-  subnet_id         = aws_subnet.public_subnet_1[0].id
+# resource "aws_nat_gateway" "public_nat" {
+#   count             = var.env == "prd" ? 0 : 1
+#   connectivity_type = "public"
+#   subnet_id         = aws_subnet.public_subnet_1[0].id
 
-}
+# }
 
 resource "aws_subnet" "private_subnet_1" {
   vpc_id            = aws_vpc.default.id
