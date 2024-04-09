@@ -27,10 +27,10 @@ provider "aws" {
 #   env    = "prd"
 # }
 
-variable "envs" {
-  type    = list(string)
-  default = ["dev", "prd", ""]
-}
+# variable "envs" {
+#   type    = list(string)
+#   default = ["dev", "prd", ""]
+# }
 
 # variable "names" {
 #   type    = list(string)
@@ -52,15 +52,22 @@ variable "envs" {
 #   env    = "personal_${each.key}"
 # }
 
-# 조건문 사용하기
-module "vpc_list" {
-  for_each = toset([for env in var.envs : env if env != ""])
-  source   = "./custom_vpc"
-  env      = each.key
+# # 조건문 사용하기
+# module "main_vpc" {
+#   for_each = toset([for env in var.envs : env if env != ""])
+#   source = "./custom_vpc"
+#   env      = each.key
+# }
+
+# workspace 사용
+module "main_vpc" {
+  source = "./custom_vpc"
+  env    = terraform.workspace
 }
 
 # 버켓명은 모든 계정에서 고유해야 함
 resource "aws_s3_bucket" "tf_backend_lsb" {
+  count  = terraform.workspace == "default" ? 1 : 0
   bucket = "tf-backend-lsb"
 
   tags = {
@@ -69,14 +76,16 @@ resource "aws_s3_bucket" "tf_backend_lsb" {
 }
 
 resource "aws_s3_bucket_versioning" "tf_backend_lsb_versioning" {
-  bucket = aws_s3_bucket.tf_backend_lsb.id
+  count  = terraform.workspace == "default" ? 1 : 0
+  bucket = aws_s3_bucket.tf_backend_lsb[0].id
   versioning_configuration {
     status = "Enabled"
   }
 }
 
 resource "aws_s3_bucket_acl" "tf_backend_lsb_acl" {
-  bucket = aws_s3_bucket.tf_backend_lsb.id
+  count  = terraform.workspace == "default" ? 1 : 0
+  bucket = aws_s3_bucket.tf_backend_lsb[0].id
   acl    = "private"
 }
 
